@@ -25,21 +25,21 @@ A Few Simple Examples:
 
 Or if you prefer a chained style
 
-  (-> (create*)
-      (table* :users)
-      (serial :id :primary-key)
-      (varchar :name 255 :not-null)
-      (varchar :email 255 :not-null))
+    (-> (create*)
+        (table* :users)
+        (serial :id :primary-key)
+        (varchar :name 255 :not-null)
+        (varchar :email 255 :not-null))
 
 Which will not be evaluated until you pass the command as an argument to `(execute)` (or `with-connection` or `sql-string`). 
 
 Paneer will reuse Korma's db connection if it is present, otherwise you can pass either a a Heroku-style DATABASE_URL uri to Paneer or a [jdbc-style](https://github.com/clojure/java.jdbc) database connection map to Paneer to execute the sql. 
 
-  (with-connection "postgres://user:pass@host:port/db-name" (create (table :users)))
+    (with-connection "postgres://user:pass@host:port/db-name" (create (table :users)))
 
 or wrap a command as 
   
-  (sql-string (create (table :users))) 
+    (sql-string (create (table :users))) 
 
 to returnt the sql string. 
 
