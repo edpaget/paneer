@@ -13,7 +13,7 @@ A Few Simple Examples:
 
     (create 
       (table :users
-             (integer :id :primary-key :serial)
+             (serial :id :primary-key)
              (varchar :name 255 :not-null)
              (varchar :email 255 :not-null)))
 
@@ -27,7 +27,7 @@ Or if you prefer a chained style
 
   (-> (create*)
       (table* :users)
-      (integer :id :primary-key :serial)
+      (serial :id :primary-key)
       (varchar :name 255 :not-null)
       (varchar :email 255 :not-null))
 
