@@ -32,11 +32,11 @@
            {:command :alter-drop-column
             :if-exists true 
             :table "users"
-            :columns ["name"]})
+            :columns [{:col-name "name"}]})
          "ALTER TABLE IF EXISTS \"users\" DROP COLUMN IF EXISTS \"name\";"))
   (is (= (make-query
            {:command :alter-rename-column
             :if-exists false
             :table "users"
-            :columns ["name" "user-name"]})
+            :columns [{:col-name "name"} {:col-name "user-name"}]})
          "ALTER TABLE \"users\" RENAME COLUMN \"name\" TO \"user-name\";")))
