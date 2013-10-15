@@ -1,6 +1,8 @@
 language: clojure
 lein: lein2
-script: lein2 with-profile dev test
+before_script:
+  - psql -c 'create database test;' -U postgres
+script: TEST_DATABASE_URL=postgres://postgres:@localhost:5432/test lein2 with-profile dev test
 jdk:
   - openjdk7
   - oraclejdk7
