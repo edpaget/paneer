@@ -1,4 +1,4 @@
-# paneer
+# paneer [![Build Status](https://travis-ci.org/edpaget/paneer.png?branch=master)](https://travis-ci.org/edpaget/paneer)
 
 A Clojure Library to describe and alter tables. Think of it as complimentary to the features offered in [Korma](https://github.com/korma/Korma). It can also be used with [drift](https://github.com/macourtney/drift) to provide a nice solution for doing SQL migrations in Clojure.  
 
