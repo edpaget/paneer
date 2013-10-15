@@ -76,6 +76,7 @@
           :columns [{:col-name "id" :type "serial" :options [:primary-key]}
                     {:col-name "name" :type "varchar(255)" :options []}
                     {:col-name "email" :type "varchar(255)" :options []}]})))
+
 (deftest create-if-not-exists-test
   (is (= (create-if-not-exists 
            (table 
