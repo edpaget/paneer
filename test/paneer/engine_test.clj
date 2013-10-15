@@ -11,6 +11,14 @@
                       {:type "varchar(255)" :col-name "name" :options [:not-null]}
                       {:type "varchar(255)":col-name "email" :options [:not-null]}]})
          "CREATE TABLE \"users\" (\"id\" serial PRIMARY KEY NOT NULL, \"name\" varchar(255) NOT NULL, \"email\" varchar(255) NOT NULL);"))
+  (is (= (make-query 
+           {:command :create
+            :if-exists false
+            :table "things"
+            :columns [{:type "serial" :col-name "id" :options [:primary-key :not-null]}
+                      {:type "integer":col-name "user_id" :options ["REFERENCE \"users\" (\"id\")" :on-delete :set-null]}
+                      {:type "timestamp" :col-name "created_at" :options [:default "now()"]}]})
+         "CREATE TABLE \"things\" (\"id\" serial PRIMARY KEY NOT NULL, \"user_id\" integer REFERENCE \"users\" (\"id\") ON DELETE SET NULL, \"created_at\" timestamp DEFAULT now());"))
   (is (= (make-query
            {:command :alter-rename
             :if-exists true

@@ -176,4 +176,9 @@
   [command col-name & options]
   (apply column command col-name "double precision" options))
 
-
+(defn refer-to
+  "Creates a reference column"
+  [command table & [type]]
+  (let [cname (str (->> table name butlast (apply str)) "_id")
+        options [(str "REFERENCES \"" (name table) "\" (\"id\")") :on-delete :set-null]]
+    (apply column command cname (or type :integer) options)))

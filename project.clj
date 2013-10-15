@@ -1,4 +1,4 @@
-(defproject paneer "0.1.0-SNAPSHOT"
+(defproject paneer "0.1.1-SNAPSHOT"
   :description "FIXME: write description"
   :url "http://example.com/FIXME"
   :license {:name "GNU General Public License"
@@ -10,4 +10,5 @@
                                   [org.clojure/java.jdbc "0.3.0-alpha5"]
                                   [postgresql/postgresql "8.4-702.jdbc4"]
                                   [com.h2database/h2 "1.3.164"]]
-                   :plugins [[codox "0.6.6"]]}})
+                   :plugins [[codox "0.6.6"]
+                             [lein-localrepo "0.5.2"]]}})

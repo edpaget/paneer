@@ -99,3 +99,13 @@
   (is (= (drop-if-exists
            (table :users))
          '(0))))
+
+(deftest refer-to-test
+  (is (= (first (:columns (refer-to (create*) :users "varchar(255)")))
+         {:col-name "user_id" 
+          :type "varchar(255)" 
+          :options ["REFERENCES \"users\" (\"id\")" :on-delete :set-null]}))
+   (is (= (first (:columns (refer-to (create*) :users)))
+         {:col-name "user_id" 
+          :type "integer" 
+          :options ["REFERENCES \"users\" (\"id\")" :on-delete :set-null]})))
