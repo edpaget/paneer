@@ -1,4 +1,7 @@
 (ns paneer.core
+  (:use [paneer.engine :only [make-query]]
+        [paneer.db :only [__default]])
+  (:require [clojure.java.jdbc :as j])
   (:refer-clojure :exclude [bigint boolean char double float time drop]))
 
 (defn- command
@@ -36,6 +39,21 @@
                                        {:type (name col-type) 
                                         :options (into [] options)}))]
     (update-in command [:columns] conj column-def)))
+
+(defn sql-string
+  "Produces an sql string from command map"
+  [command]
+  (make-query command))
+  
+(defn with-connection
+  "Executes a query with a given connection"
+  [command conn]
+  (j/db-do-commands conn (sql-string command))) 
+
+(defn execute
+  "Execute command with the default connection"
+  [command]
+  (with-connection command @__default))
 
 (defn- must-be-alter
   [command]
@@ -77,11 +95,13 @@
       (table :users
         (serial :id :primary-key)
         (varchar :name 255)
-        (varchar :email 255)))"
+        (varchar :email 255)))
+  then automatically executes it against the current default database."
   [[_ tbl-name & columns]]
   `(-> (create*)
        (table*  ~tbl-name)
-       ~@columns))
+       ~@columns
+       execute))
 
 (defmacro create-if-not-exists
   "Allows you to wrap a table definitions together as in the create macro, but
@@ -89,22 +109,25 @@
   [[_ tbl-name & columns]]
   `(-> (create* :if-exists true)
        (table* ~tbl-name)
-       ~@columns))
+       ~@columns
+       execute))
 
 (defmacro drop
   "Nice wrapper for dropping tables allows you to write:
     (drop
-      (table :users))"
+      (table :users))
+  then automatically executes it against the current default database. "
   [[_ tbl-name]]
   `(-> (drop*)
-       (table* ~tbl-name)))
+       (table* ~tbl-name)
+       execute))
 
 (defmacro drop-if-exists
   "Nice wrapper for dropping table as in the drop macro"
   [[_ tbl-name]]
   `(-> (drop* :if-exists true)
-       (table* ~tbl-name)))
-
+       (table* ~tbl-name)
+       execute))
 
 ;; Helper Functions for Creating specifically typed columns
 

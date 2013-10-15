@@ -1,7 +1,12 @@
 (ns paneer.core-test
   (:refer-clojure :exclude [bigint boolean char double float time drop]) 
   (:require [clojure.test :refer :all]
-            [paneer.core :refer :all]))
+            [paneer.core :refer :all]
+            [paneer.db :as db]))
+
+(-> (System/getenv)
+    (get "TEST_DATABASE_URL")
+    db/set-default-db!)
 
 (deftest create*-test
   (is (= (create*) {:command :create :if-exists false :table nil :columns []}))
@@ -70,12 +75,8 @@
              (serial :id :primary-key)
              (varchar :name 255)
              (varchar :email 255)))
-         {:command :create
-          :table "users"
-          :if-exists false
-          :columns [{:col-name "id" :type "serial" :options [:primary-key]}
-                    {:col-name "name" :type "varchar(255)" :options []}
-                    {:col-name "email" :type "varchar(255)" :options []}]})))
+         '(0)))
+  (drop (table "users")))
 
 (deftest create-if-not-exists-test
   (is (= (create-if-not-exists 
@@ -84,25 +85,17 @@
              (serial :id :primary-key)
              (varchar :name 255)
              (varchar :email 255)))
-         {:command :create
-          :table "users"
-          :if-exists true 
-          :columns [{:col-name "id" :type "serial" :options [:primary-key]}
-                    {:col-name "name" :type "varchar(255)" :options []}
-                    {:col-name "email" :type "varchar(255)" :options []}]})))
+         '(0)))
+  (drop (table "users")))
  
 (deftest drop-test
+  (create (table "users" (serial :id :primary-key)))
   (is (= (drop
            (table :users))
-         {:command :drop
-          :table "users"
-          :if-exists false
-          :columns []})))
+         '(0))))
 
 (deftest drop-if-exists-test
+  (create (table "users" (serial :id :primary-key)))
   (is (= (drop-if-exists
            (table :users))
-         {:command :drop
-          :table "users"
-          :if-exists true 
-          :columns []})))
+         '(0))))
