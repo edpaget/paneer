@@ -1,4 +1,4 @@
-(defproject paneer "0.1.1-SNAPSHOT"
+(defproject paneer "0.1.1"
   :description "FIXME: write description"
   :url "http://example.com/FIXME"
   :license {:name "GNU General Public License"

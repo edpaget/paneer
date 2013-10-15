@@ -4,7 +4,7 @@ A Clojure Library to describe and alter tables. Think of it as complimentary to 
 
 ## Usage
 
-Paneer is a tool for creating, altering, and dropping tables in a SQL database. See the [Docs]() for a full description of the API.  
+Paneer is a tool for creating, altering, and dropping tables in a SQL database. See the [Docs](https://edpaget.github.io/paneer/) for a full description of the API.  
 
 A Few Simple Examples:
 
@@ -17,6 +17,7 @@ A Few Simple Examples:
              (varchar :name 255 :not-null)
              (varchar :email 255 :not-null)))
 
+    ;; Not yet implemented chained version does exist
     (alter
       (table :users
         (rename (column :name) (column :user-name))))
