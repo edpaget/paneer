@@ -1,5 +1,5 @@
 (ns paneer.core-test
-  (:refer-clojure :exclude [bigint boolean char double float time]) 
+  (:refer-clojure :exclude [bigint boolean char double float time drop]) 
   (:require [clojure.test :refer :all]
             [paneer.core :refer :all]))
 
@@ -62,3 +62,46 @@
           :table nil
           :if-exists false
           :columns [{:col-name "name"}]})))
+
+(deftest create-test
+  (is (= (create 
+           (table 
+             :users
+             (serial :id :primary-key)
+             (varchar :name 255)
+             (varchar :email 255)))
+         {:command :create
+          :table "users"
+          :if-exists false
+          :columns [{:col-name "id" :type "serial" :options [:primary-key]}
+                    {:col-name "name" :type "varchar(255)" :options []}
+                    {:col-name "email" :type "varchar(255)" :options []}]})))
+(deftest create-if-not-exists-test
+  (is (= (create-if-not-exists 
+           (table 
+             :users
+             (serial :id :primary-key)
+             (varchar :name 255)
+             (varchar :email 255)))
+         {:command :create
+          :table "users"
+          :if-exists true 
+          :columns [{:col-name "id" :type "serial" :options [:primary-key]}
+                    {:col-name "name" :type "varchar(255)" :options []}
+                    {:col-name "email" :type "varchar(255)" :options []}]})))
+ 
+(deftest drop-test
+  (is (= (drop
+           (table :users))
+         {:command :drop
+          :table "users"
+          :if-exists false
+          :columns []})))
+
+(deftest drop-if-exists-test
+  (is (= (drop-if-exists
+           (table :users))
+         {:command :drop
+          :table "users"
+          :if-exists true 
+          :columns []})))
