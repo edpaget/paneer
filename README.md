@@ -3,6 +3,7 @@
 A Clojure Library to describe and alter tables. Think of it as complimentary to the features offered in [Korma](https://github.com/korma/Korma). It can also be used with [drift](https://github.com/macourtney/drift) to provide a nice solution for doing SQL migrations in Clojure.  
 
 Get the current version from Clojars with:
+
       [paneer "0.1.1"]
 
 ## Usage
