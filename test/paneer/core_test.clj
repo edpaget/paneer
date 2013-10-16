@@ -1,5 +1,5 @@
 (ns paneer.core-test
-  (:refer-clojure :exclude [bigint boolean char double float time drop]) 
+  (:refer-clojure :exclude [bigint boolean char double float time drop alter]) 
   (:require [clojure.test :refer :all]
             [paneer.core :refer :all]
             [paneer.db :as db]))
@@ -7,6 +7,14 @@
 (-> (System/getenv)
     (get "TEST_DATABASE_URL")
     db/set-default-db!)
+
+(defn create-users
+  [] 
+  (create (table "users" (serial :id :primary-key))))
+
+(defn drop-users
+  []
+  (drop (table :users)))
 
 (deftest create*-test
   (is (= (create*) {:command :create :if-exists false :table nil :columns []}))
@@ -76,7 +84,7 @@
              (varchar :name 255)
              (varchar :email 255)))
          '(0)))
-  (drop (table "users")))
+  (drop-users))
 
 (deftest create-if-not-exists-test
   (is (= (create-if-not-exists 
@@ -86,16 +94,16 @@
              (varchar :name 255)
              (varchar :email 255)))
          '(0)))
-  (drop (table "users")))
+  (drop-users))
  
 (deftest drop-test
-  (create (table "users" (serial :id :primary-key)))
+  (create-users)
   (is (= (drop
            (table :users))
          '(0))))
 
 (deftest drop-if-exists-test
-  (create (table "users" (serial :id :primary-key)))
+  (create-users)
   (is (= (drop-if-exists
            (table :users))
          '(0))))
@@ -109,3 +117,19 @@
          {:col-name "user_id" 
           :type "integer" 
           :options ["REFERENCES \"users\" (\"id\")" :on-delete :set-null]})))
+
+(deftest alter-test
+  (create-users)
+  (is (= (alter (table :users :rename-to :lusers))
+         '(0)))
+  (drop (table :lusers))
+  (create-users)
+  (is (= (alter (table :users (rename (column :id) (to :uid))))
+         '(0)))
+  (drop-users)
+  (create-users)
+  (is (= (alter (table :users (add-column (varchar :name 255 :not-null))))
+         '(0)))
+  (is (= (alter (table :users (drop-column :name))))
+      '(0))
+  (drop-users))

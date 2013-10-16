@@ -2,7 +2,7 @@
   (:use [paneer.engine :only [make-query]]
         [paneer.db :only [__default]])
   (:require [clojure.java.jdbc :as j])
-  (:refer-clojure :exclude [bigint boolean char double float time drop]))
+  (:refer-clojure :exclude [bigint boolean char double float time drop alter]))
 
 (defn- command
   [command {:keys [if-exists]}]
@@ -87,7 +87,9 @@
   [command & col-options]
   (must-be-alter command)
   (let [command (update-in command [:command] (constantly :alter-create-column))] 
-    (apply column command col-options)))
+    (if (symbol? (first col-options)) 
+      (apply @(resolve (first col-options)) command (rest col-options))
+      (apply column command col-options))))
 
 (defmacro create
   "Allows you to wrap a table definition together as in
@@ -128,6 +130,51 @@
   `(-> (drop* :if-exists true)
        (table* ~tbl-name)
        execute))
+
+(defmacro rename
+  "Internally used by alter macro"
+  [column [_ new-name] command]
+  `(-> ~command
+     ~column
+     (rename-column-to* ~new-name)))
+
+(defmacro add-column
+  "Internally used by alter macro"
+  [column command]
+  `(apply add-column* ~command '~column))
+
+(defmacro drop-column
+  "Internally used by alter macro"
+  [column-name command]
+  `(drop-column* ~command ~column-name))
+
+(defmacro alter
+ "Nice wrapper for altering tables. Allows you to write:
+    (alter
+      (table :users :rename-to :lusers))
+  
+    (alter
+      (table :users 
+        (add-column (varchar :api-key 255 :not-null))))
+  
+    (alter 
+      (table :users 
+        (rename (column :email)
+                (to :shpemail))))
+
+    (alter
+      (table :users
+        (drop-column :email)))"
+
+  ([form]
+   `(-> (alter ~@form)
+        execute))
+  ([_ tbl-name _ new-name]
+   `(-> (alter*)
+        (table* ~tbl-name)
+        (rename-to* ~new-name)))
+  ([_ tbl-name action]
+   `(~@action (table* (alter*) ~tbl-name))))
 
 ;; Helper Functions for Creating specifically typed columns
 
