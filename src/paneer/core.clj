@@ -87,8 +87,8 @@
   [command & col-options]
   (must-be-alter command)
   (let [command (update-in command [:command] (constantly :alter-create-column))] 
-    (if (symbol? (first col-options)) 
-      (apply @(resolve (first col-options)) command (rest col-options))
+    (if (fn? (first col-options)) 
+      (apply (first col-options) command (rest col-options))
       (apply column command col-options))))
 
 (defmacro create
@@ -140,8 +140,9 @@
 
 (defmacro add-column
   "Internally used by alter macro"
-  [column command]
-  `(apply add-column* ~command '~column))
+  [[col-type & options] command]
+  (let [col-type @(resolve col-type)] 
+    `(add-column* ~command ~col-type ~@options)))
 
 (defmacro drop-column
   "Internally used by alter macro"

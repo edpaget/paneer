@@ -70,6 +70,11 @@
           :columns [{:col-name "name"} {:col-name "bad_name"}]})))
 
 (deftest add-column*-test
+  (is (= (add-column* (alter*) varchar :name 255))
+      {:command :alter-create-column
+       :table nil
+       :if-exists false
+       :columns [{:col-name "name" :type "varchar(255)" :options []}]})
   (is (= (add-column* (alter*) "name")
          {:command :alter-create-column
           :table nil
