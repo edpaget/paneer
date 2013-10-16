@@ -21,10 +21,9 @@ A Few Simple Examples:
              (varchar :name 255 :not-null)
              (varchar :email 255 :not-null)))
 
-    ;; Not yet implemented chained version does exist
     (alter
       (table :users
-        (rename (column :name) (column :user-name))))
+        (rename (column :name) (to :user-name))))
 
     (drop (table :users))
 
@@ -38,7 +37,7 @@ Or if you prefer a chained style
 
 Which will not be evaluated until you pass the command as an argument to `(execute)` (or `with-connection` or `sql-string`). 
 
-Paneer will reuse Korma's db connection if it is present, otherwise you can pass either a a Heroku-style DATABASE_URL uri to Paneer or a [jdbc-style](https://github.com/clojure/java.jdbc) database connection map to Paneer to execute the sql. 
+Paneer will reuse Korma's db connection if it is present (not yet implemented), otherwise you can pass either a a Heroku-style DATABASE_URL uri to Paneer or a [jdbc-style](https://github.com/clojure/java.jdbc) database connection map to Paneer to execute the sql. 
 
     (with-connection "postgres://user:pass@host:port/db-name" (create (table :users)))
 
