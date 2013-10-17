@@ -57,7 +57,7 @@
   (if (empty? (b/namespaces-on-classpath :prefix "korma")) 
     (with-connection command @__default)
     ((eval '(do (require 'korma.core)
-                (fn [command] (korma.core/exec-raw (sql-string command))))) 
+                (fn [command] (korma.core/exec-raw (paneer.core/sql-string command))))) 
      command)))
 
 (defn- must-be-alter
