@@ -1,7 +1,8 @@
 (ns paneer.core
   (:use [paneer.engine :only [make-query]]
         [paneer.db :only [__default]])
-  (:require [clojure.java.jdbc :as j])
+  (:require [clojure.java.jdbc :as j]
+            [bultitude.core :as b])
   (:refer-clojure :exclude [bigint boolean char double float time drop alter]))
 
 (defn- command
@@ -44,7 +45,7 @@
   "Produces an sql string from command map"
   [command]
   (make-query command))
-  
+
 (defn with-connection
   "Executes a query with a given connection"
   [command conn]
@@ -53,7 +54,11 @@
 (defn execute
   "Execute command with the default connection"
   [command]
-  (with-connection command @__default))
+  (if (empty? (b/namespaces-on-classpath :prefix "korma")) 
+    (with-connection command @__default)
+    ((eval '(do (require 'korma.core)
+                (fn [command] (korma.core/exec-raw (sql-string command))))) 
+     command)))
 
 (defn- must-be-alter
   [command]
@@ -93,11 +98,11 @@
 
 (defmacro create
   "Allows you to wrap a table definition together as in
-    (create
-      (table :users
-        (serial :id :primary-key)
-        (varchar :name 255)
-        (varchar :email 255)))
+  (create
+  (table :users
+  (serial :id :primary-key)
+  (varchar :name 255)
+  (varchar :email 255)))
   then automatically executes it against the current default database."
   [[_ tbl-name & columns]]
   `(-> (create*)
@@ -116,8 +121,8 @@
 
 (defmacro drop
   "Nice wrapper for dropping tables allows you to write:
-    (drop
-      (table :users))
+  (drop
+  (table :users))
   then automatically executes it against the current default database. "
   [[_ tbl-name]]
   `(-> (drop*)
@@ -135,8 +140,8 @@
   "Internally used by alter macro"
   [column [_ new-name] command]
   `(-> ~command
-     ~column
-     (rename-column-to* ~new-name)))
+       ~column
+       (rename-column-to* ~new-name)))
 
 (defmacro add-column
   "Internally used by alter macro"
@@ -150,22 +155,22 @@
   `(drop-column* ~command ~column-name))
 
 (defmacro alter
- "Nice wrapper for altering tables. Allows you to write:
-    (alter
-      (table :users :rename-to :lusers))
-  
-    (alter
-      (table :users 
-        (add-column (varchar :api-key 255 :not-null))))
-  
-    (alter 
-      (table :users 
-        (rename (column :email)
-                (to :shpemail))))
+  "Nice wrapper for altering tables. Allows you to write:
+  (alter
+  (table :users :rename-to :lusers))
 
-    (alter
-      (table :users
-        (drop-column :email)))"
+  (alter
+  (table :users 
+  (add-column (varchar :api-key 255 :not-null))))
+
+  (alter 
+  (table :users 
+  (rename (column :email)
+  (to :shpemail))))
+
+  (alter
+  (table :users
+  (drop-column :email)))"
 
   ([form]
    `(-> (alter ~@form)
