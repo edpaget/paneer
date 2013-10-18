@@ -1,4 +1,4 @@
-(defproject paneer "0.1.2"
+(defproject paneer "0.1.3-SNAPSHOT"
   :description "A small library for managing SQL tables intended to be used alongside Korma, or Drift"
   :url "https://edpaget.github.io/paneer"
   :license {:name "GNU General Public License"
