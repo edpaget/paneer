@@ -1,4 +1,5 @@
-(ns paneer.korma)
+(ns paneer.korma
+  (:require [clojure.string :as str]))
 
 (try 
   (require 'korma.core)
@@ -6,6 +7,9 @@
   (intern 'paneer.core 
           'execute 
           (eval '(fn [command]
-                   (korma.core/exec-raw (paneer.core/sql-string command)))))
+                  (let [command (paneer.core/sql-string command)] 
+                    (if (command? string) 
+                      (korma.core/exec-raw command)
+                      (korma.core/exec-raw (str "BEGIN; " (str/join " " command) " END;")))))))
   (catch Throwable T
     false))
