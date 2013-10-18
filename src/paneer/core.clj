@@ -1,8 +1,7 @@
 (ns paneer.core
   (:use [paneer.engine :only [make-query]]
         [paneer.db :only [__default]])
-  (:require [clojure.java.jdbc :as j]
-            [bultitude.core :as b])
+  (:require [clojure.java.jdbc :as j])
   (:refer-clojure :exclude [bigint boolean char double float time drop alter]))
 
 (defn- command
@@ -54,11 +53,7 @@
 (defn execute
   "Execute command with the default connection"
   [command]
-  (if (empty? (b/namespaces-on-classpath :prefix "korma")) 
-    (with-connection command @__default)
-    ((eval '(do (require 'korma.core)
-                (fn [command] (korma.core/exec-raw (paneer.core/sql-string command))))) 
-     command)))
+  (with-connection command @__default))
 
 (defn- must-be-alter
   [command]
