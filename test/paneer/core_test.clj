@@ -137,4 +137,13 @@
          '(0)))
   (is (= (alter (table :users (drop-column :name))))
       '(0))
+  (drop-users)
+  (create-users)
+  (is (= (alter 
+           (table :users 
+                  (add-column 
+                    (varchar :name 255 :not-null)
+                    (integer :lucky_no :unique)
+                    (timestamp :created_at :default "now()"))))
+         '(0 0 0)))
   (drop-users))

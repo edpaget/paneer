@@ -24,4 +24,10 @@
                   (varchar :name 255 :not-null)
                   (varchar :email 255)))
          '(0)))
+  (is (= (alter
+           (table :users
+                  (add-column 
+                    (integer :lucky-no :unique)
+                    (varchar :address 255 :not-null))))
+         '(0 0)))
   (drop (table :users)))

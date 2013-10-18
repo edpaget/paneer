@@ -48,7 +48,10 @@
 (defn with-connection
   "Executes a query with a given connection"
   [command conn]
-  (j/db-do-commands conn (sql-string command))) 
+  (let [command (sql-string command)] 
+    (if (string? command) 
+      (j/db-do-commands conn command)
+      (apply j/db-do-commands conn command)))) 
 
 (defn execute
   "Execute command with the default connection"
@@ -87,17 +90,17 @@
   [command & col-options]
   (must-be-alter command)
   (let [command (update-in command [:command] (constantly :alter-create-column))] 
-    (if (fn? (first col-options)) 
-      (apply (first col-options) command (rest col-options))
-      (apply column command col-options))))
+    (cond (nil? col-options) command
+          (fn? (first col-options)) (apply (first col-options) command (rest col-options))
+          true (apply column command col-options))))
 
 (defmacro create
   "Allows you to wrap a table definition together as in
   (create
-  (table :users
-  (serial :id :primary-key)
-  (varchar :name 255)
-  (varchar :email 255)))
+    (table :users
+           (serial :id :primary-key)
+           (varchar :name 255)
+           (varchar :email 255)))
   then automatically executes it against the current default database."
   [[_ tbl-name & columns]]
   `(-> (create*)
@@ -117,7 +120,7 @@
 (defmacro drop
   "Nice wrapper for dropping tables allows you to write:
   (drop
-  (table :users))
+    (table :users))
   then automatically executes it against the current default database. "
   [[_ tbl-name]]
   `(-> (drop*)
@@ -133,39 +136,40 @@
 
 (defmacro rename
   "Internally used by alter macro"
-  [column [_ new-name] command]
+  [command column [_ new-name]]
   `(-> ~command
        ~column
        (rename-column-to* ~new-name)))
 
 (defmacro add-column
   "Internally used by alter macro"
-  [[col-type & options] command]
-  (let [col-type @(resolve col-type)] 
-    `(add-column* ~command ~col-type ~@options)))
+  [command & columns]
+  `(-> ~command
+       (add-column*)
+       ~@columns))
 
 (defmacro drop-column
   "Internally used by alter macro"
-  [column-name command]
+  [command column-name]
   `(drop-column* ~command ~column-name))
 
 (defmacro alter
   "Nice wrapper for altering tables. Allows you to write:
   (alter
-  (table :users :rename-to :lusers))
+    (table :users :rename-to :lusers))
 
   (alter
-  (table :users 
-  (add-column (varchar :api-key 255 :not-null))))
+    (table :users 
+           (add-column (varchar :api-key 255 :not-null))))
 
   (alter 
-  (table :users 
-  (rename (column :email)
-  (to :shpemail))))
+    (table :users 
+            (rename (column :email)
+                    (to :shpemail))))
 
   (alter
-  (table :users
-  (drop-column :email)))"
+    (table :users
+            (drop-column :email)))"
 
   ([form]
    `(-> (alter ~@form)
@@ -174,8 +178,8 @@
    `(-> (alter*)
         (table* ~tbl-name)
         (rename-to* ~new-name)))
-  ([_ tbl-name action]
-   `(~@action (table* (alter*) ~tbl-name))))
+  ([_ tbl-name [action & args]]
+   `(~action (table* (alter*) ~tbl-name) ~@args)))
 
 ;; Helper Functions for Creating specifically typed columns
 
