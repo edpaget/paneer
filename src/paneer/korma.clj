@@ -1,15 +1,18 @@
 (ns paneer.korma
+  (:refer-clojure :exclude [bigint boolean char double float time drop alter]) 
+  (:use korma.core
+        paneer.core)
   (:require [clojure.string :as str]))
 
-(try 
-  (require 'korma.core)
-  (require 'paneer.core)
-  (intern 'paneer.core 
-          'execute 
-          (eval '(fn [command]
-                  (let [command (paneer.core/sql-string command)] 
-                    (if (command? string) 
-                      (korma.core/exec-raw command)
-                      (korma.core/exec-raw (str "BEGIN; " (str/join " " command) " END;")))))))
-  (catch Throwable T
-    false))
+(defn exec-korma*
+  [command]
+  (let [command (sql-string command)] 
+    (if (string? command) 
+      (exec-raw command)
+      (map #(exec-raw %) command))))
+
+(defmacro exec-korma
+  "Runs Command using Korma's connection."
+  [command]
+  (let [command (rest (macroexpand command))]
+    `(exec-korma* ~@command)))
