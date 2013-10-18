@@ -4,7 +4,7 @@ A Clojure Library to describe and alter tables. Think of it as complimentary to 
 
 Get the current version from Clojars with:
 
-      [paneer "0.1.1"]
+      [paneer "0.1.2"]
 
 ## Usage
 
@@ -37,7 +37,9 @@ Or if you prefer a chained style
 
 Which will not be evaluated until you pass the command as an argument to `(execute)` (or `with-connection` or `sql-string`). 
 
-Paneer will reuse Korma's db connection if it is present (not yet implemented), otherwise you can pass either a a Heroku-style DATABASE_URL uri to Paneer or a [jdbc-style](https://github.com/clojure/java.jdbc) database connection map to Paneer to execute the sql. 
+Paneer can reuse Korma's db connection if it is present. Make sure to include `(:require paneer.korma)` and the top of any ns you want to use this feature in, then run any queries with `(execute command-ap)` (any macro defined commands will execute automatically), and they'll be run against Korma's current db connection. Support for using multiple Korma connections is in the pipeline.
+
+Otherwise you can pass either a a Heroku-style DATABASE_URL uri to Paneer or a [jdbc-style](https://github.com/clojure/java.jdbc) database connection map to Paneer to execute the sql. 
 
     (with-connection "postgres://user:pass@host:port/db-name" (create (table :users)))
 

@@ -1,9 +1,9 @@
-(defproject paneer "0.1.2-SNAPSHOT"
+(defproject paneer "0.1.2"
   :description "A small library for managing SQL tables intended to be used alongside Korma, or Drift"
   :url "https://edpaget.github.io/paneer"
   :license {:name "GNU General Public License"
             :url "https://www.gnu.org/licenses/gpl-3.0.html"}
-  :codox {:exclude [paneer.engine]
+  :codox {:exclude [paneer.engine paneer.korma]
           :src-dir-uri "https://github.com/edpaget/paneer/blob/master/"
           :src-linenum-anchor-prefix "L"}
   :profiles {:dev {:dependencies [[org.clojure/clojure "1.5.1"]
