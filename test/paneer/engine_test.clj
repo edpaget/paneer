@@ -32,6 +32,14 @@
             :columns [{:type "integer" :col-name "lucky-no" :options [:unique]}]})
          "ALTER TABLE \"users\" ADD COLUMN \"lucky-no\" integer UNIQUE;"))
   (is (= (make-query
+           {:command :alter-create-column
+            :if-exists false
+            :table "users"
+            :columns [{:type "integer" :col-name "lucky-no" :options [:unique]}
+                      {:type "varchar(255)" :col-name "crack-spot" :options [:not-null]}]})
+         ["ALTER TABLE \"users\" ADD COLUMN \"lucky-no\" integer UNIQUE;"
+          "ALTER TABLE \"users\" ADD COLUMN \"crack-spot\" varchar(255) NOT NULL;"]))
+  (is (= (make-query
            {:command :drop
             :if-exists true
             :table "users"})
