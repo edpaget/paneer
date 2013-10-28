@@ -1,15 +1,16 @@
 (ns paneer.db
   (:require [clojure.string :as str]
-            [clojure.java.jdbc :as j]))
+            [korma.core :refer [exec-raw]]
+            [paneer.engine :refer [eval-query]]))
 
-(defonce __default (atom {}))
-
-(defn from-korma-db-definition
-  "Returns connection info from Korma DB definition"
-  [{:keys [db-spec]}]
-  db-spec)
-
-(defn set-default-db!
-  "Sets the default db for future transactions"
-  [db]
-  (reset! __default db))
+(defn execute
+  "Executes the command against the default Korma connection. Accepted options are
+    :raw - booleans whether to evaluate command using paneer to try to execute as string
+      the default is false
+    :db - specifies a different Korma database connection to use"
+  [command & opts]
+  (cond 
+    (and (:db opts) (:raw opts)) (exec-raw (:db opts) command)
+    (:raw opts) (exec-raw command)
+    (:db opts) (exec-raw (:db opts) (eval-query command))
+    true (exec-raw (eval-query command))))

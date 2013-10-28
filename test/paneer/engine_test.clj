@@ -2,55 +2,54 @@
   (:use clojure.test
         paneer.engine))
 
-(deftest make-query-test
-  (is (= (make-query 
-           {:command :create
+(deftest eval-query-test
+  (is (= (eval-query 
+           {:command :create-table
             :if-exists false
             :table "users"
             :columns [{:type "serial" :col-name "id" :options [:primary-key :not-null]}
                       {:type "varchar(255)" :col-name "name" :options [:not-null]}
                       {:type "varchar(255)":col-name "email" :options [:not-null]}]})
          "CREATE TABLE \"users\" (\"id\" serial PRIMARY KEY NOT NULL, \"name\" varchar(255) NOT NULL, \"email\" varchar(255) NOT NULL);"))
-  (is (= (make-query 
-           {:command :create
+  (is (= (eval-query 
+           {:command :create-table
             :if-exists false
             :table "things"
             :columns [{:type "serial" :col-name "id" :options [:primary-key :not-null]}
                       {:type "integer":col-name "user_id" :options ["REFERENCE \"users\" (\"id\")" :on-delete :set-null]}
                       {:type "timestamp" :col-name "created_at" :options [:default "now()"]}]})
          "CREATE TABLE \"things\" (\"id\" serial PRIMARY KEY NOT NULL, \"user_id\" integer REFERENCE \"users\" (\"id\") ON DELETE SET NULL, \"created_at\" timestamp DEFAULT now());"))
-  (is (= (make-query
+  (is (= (eval-query
            {:command :alter-rename
             :if-exists true
             :table "users"
             :new-table "bad_users"})
          "ALTER TABLE IF EXISTS \"users\" RENAME TO \"bad_users\";"))
-  (is (= (make-query
+  (is (= (eval-query
            {:command :alter-create-column
             :if-exists false
             :table "users"
             :columns [{:type "integer" :col-name "lucky-no" :options [:unique]}]})
          "ALTER TABLE \"users\" ADD COLUMN \"lucky-no\" integer UNIQUE;"))
-  (is (= (make-query
+  (is (= (eval-query
            {:command :alter-create-column
             :if-exists false
             :table "users"
             :columns [{:type "integer" :col-name "lucky-no" :options [:unique]}
                       {:type "varchar(255)" :col-name "crack-spot" :options [:not-null]}]})
-         ["ALTER TABLE \"users\" ADD COLUMN \"lucky-no\" integer UNIQUE;"
-          "ALTER TABLE \"users\" ADD COLUMN \"crack-spot\" varchar(255) NOT NULL;"]))
-  (is (= (make-query
-           {:command :drop
+         "BEGIN;\nALTER TABLE \"users\" ADD COLUMN \"lucky-no\" integer UNIQUE;\nALTER TABLE \"users\" ADD COLUMN \"crack-spot\" varchar(255) NOT NULL;\nEND;"))
+  (is (= (eval-query
+           {:command :drop-table
             :if-exists true
             :table "users"})
          "DROP TABLE IF EXISTS \"users\";"))
-  (is (= (make-query
+  (is (= (eval-query
            {:command :alter-drop-column
             :if-exists true 
             :table "users"
             :columns [{:col-name "name"}]})
          "ALTER TABLE IF EXISTS \"users\" DROP COLUMN IF EXISTS \"name\";"))
-  (is (= (make-query
+  (is (= (eval-query
            {:command :alter-rename-column
             :if-exists false
             :table "users"
