@@ -1,16 +1,17 @@
 (ns paneer.db
   (:require [clojure.string :as str]
             [korma.core :refer [exec-raw]]
+            [korma.db :refer [transaction]]
             [paneer.engine :refer [eval-query]]))
 
 (defn execute
   "Executes the command against the default Korma connection. Accepted options are
-    :raw - booleans whether to evaluate command using paneer to try to execute as string
-      the default is false
-    :db - specifies a different Korma database connection to use"
+    :db - specifies a different Korma database connection to use
+    :sql - return only the sql that would have been executed"
   [command & opts]
-  (cond 
-    (and (:db opts) (:raw opts)) (exec-raw (:db opts) command)
-    (:raw opts) (exec-raw command)
-    (:db opts) (exec-raw (:db opts) (eval-query command))
-    true (exec-raw (eval-query command))))
+  (let [command (eval-query command)] 
+    (cond 
+      (:sql opts) command
+      (:db opts) (exec-raw (:db opts) command)
+      (vector? command) (flatten (map exec-raw command))
+      true (exec-raw command))))

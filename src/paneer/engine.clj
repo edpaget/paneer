@@ -61,7 +61,7 @@
 
 (defmethod make-query :transaction
   [{:keys [commands]}]
-  (str "BEGIN;\n" (str/join "\n" (map make-query commands)) "\nEND;"))
+  (apply vector "BEGIN;" (conj (mapv make-query commands) "COMMIT;")))
 
 (defmethod make-query :create-table
   [{:keys [if-exists table columns]}]

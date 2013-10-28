@@ -1,7 +1,6 @@
 (ns paneer.core
-  (:use [paneer.engine :only [make-query]]
-        [paneer.db :only [__default]])
-  (:require [clojure.java.jdbc :as j])
+  (:require [clojure.java.jdbc :as j]
+            [paneer.db :refer :all])
   (:refer-clojure :exclude [bigint boolean char double float time drop alter]))
 
 (defn- command
@@ -14,19 +13,19 @@
 (defn create*
   "Starts a CREATE TABLE command"
   [& opts]
-  (command :create opts)) 
+  (command :create-table opts)) 
 
 (defn alter*
   "Starts an ALTER TABLE command"
   [& opts]
-  (command :alter opts))
+  (command :alter-table opts))
 
 (defn drop*
   "Starts a DROP TABLE command"
   [& opts]
-  (command :drop opts))
+  (command :drop-table opts))
 
-(defn table*
+(defn table
   "Modifyes a command map to include table name"
   [command table-name]
   (merge command {:table (name table-name)}))
@@ -40,27 +39,9 @@
                                         :options (into [] options)}))]
     (update-in command [:columns] conj column-def)))
 
-(defn sql-string
-  "Produces an sql string from command map"
-  [command]
-  (make-query command))
-
-(defn with-connection
-  "Executes a query with a given connection"
-  [command conn]
-  (let [command (sql-string command)] 
-    (if (string? command) 
-      (j/db-do-commands conn command)
-      (apply j/db-do-commands conn command)))) 
-
-(defn execute
-  "Execute command with the default connection"
-  [command]
-  (with-connection command @__default))
-
 (defn- must-be-alter
   [command]
-  (when-not (= (:command command) :alter)
+  (when-not (= (:command command) :alter-table)
     (throw (Exception. "Command Must be :alter"))))
 
 (defn drop-column*
@@ -94,54 +75,48 @@
           (fn? (first col-options)) (apply (first col-options) command (rest col-options))
           true (apply column command col-options))))
 
-(defmacro create
+(defmacro if-exists
+  "Transforms command into the if exists version"
+  [command]
+  (let [[_ [command] & body] (macroexpand-1 command)
+        command (list command :if-exists true)]
+    `(-> ~command
+         ~@body)))
+
+(defmacro if-not-exists 
+  [command]
+  `(if-exists ~command))
+
+(defmacro create-table
   "Allows you to wrap a table definition together as in
-  (create
-    (table :users
+  (create-table :users
            (serial :id :primary-key)
            (varchar :name 255)
-           (varchar :email 255)))
+           (varchar :email 255))
   then automatically executes it against the current default database."
-  [[_ tbl-name & columns]]
+  [tbl-name & columns]
   `(-> (create*)
-       (table*  ~tbl-name)
+       (table  ~tbl-name)
        ~@columns
        execute))
 
-(defmacro create-if-not-exists
-  "Allows you to wrap a table definitions together as in the create macro, but
-  includes IF NOT EXISTS in the generated SQL"
-  [[_ tbl-name & columns]]
-  `(-> (create* :if-exists true)
-       (table* ~tbl-name)
-       ~@columns
-       execute))
-
-(defmacro drop
-  "Nice wrapper for dropping tables allows you to write:
-  (drop
-    (table :users))
+(defmacro drop-table
+  "Wrapper for dropping tables allows you to write:
+  (drop-table :users)
   then automatically executes it against the current default database. "
-  [[_ tbl-name]]
+  [tbl-name]
   `(-> (drop*)
-       (table* ~tbl-name)
-       execute))
-
-(defmacro drop-if-exists
-  "Nice wrapper for dropping table as in the drop macro"
-  [[_ tbl-name]]
-  `(-> (drop* :if-exists true)
-       (table* ~tbl-name)
+       (table ~tbl-name)
        execute))
 
 (defmacro rename
   "Internally used by alter macro"
-  [command column [_ new-name]]
+  [command column _ new-name]
   `(-> ~command
-       ~column
+       (column ~column)
        (rename-column-to* ~new-name)))
 
-(defmacro add-column
+(defmacro add-columns
   "Internally used by alter macro"
   [command & columns]
   `(-> ~command
@@ -153,33 +128,26 @@
   [command column-name]
   `(drop-column* ~command ~column-name))
 
-(defmacro alter
-  "Nice wrapper for altering tables. Allows you to write:
-  (alter
-    (table :users :rename-to :lusers))
+(defmacro alter-table
+  "Wrapper for altering tables. Allows you to write:
+  (alter-table :users :rename-to :lusers)
 
-  (alter
-    (table :users 
-           (add-column (varchar :api-key 255 :not-null))))
+  (alter-table :users 
+               (add-columns (varchar :api-key 255 :not-null)))
 
-  (alter 
-    (table :users 
-            (rename (column :email)
-                    (to :shpemail))))
+  (alter-table :users 
+               (rename :email :to :snailmail))
 
-  (alter
-    (table :users
-            (drop-column :email)))"
+  (alter-table :users
+               (drop-column :email))"
 
-  ([form]
-   `(-> (alter ~@form)
-        execute))
-  ([_ tbl-name _ new-name]
+  ([tbl-name _ new-name]
    `(-> (alter*)
-        (table* ~tbl-name)
-        (rename-to* ~new-name)))
-  ([_ tbl-name [action & args]]
-   `(~action (table* (alter*) ~tbl-name) ~@args)))
+        (table ~tbl-name)
+        (rename-to* ~new-name)
+        execute))
+  ([tbl-name [action & args]]
+   `(execute (~action (table (alter*) ~tbl-name) ~@args))))
 
 ;; Helper Functions for Creating specifically typed columns
 

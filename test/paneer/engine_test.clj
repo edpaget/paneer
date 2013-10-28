@@ -37,7 +37,10 @@
             :table "users"
             :columns [{:type "integer" :col-name "lucky-no" :options [:unique]}
                       {:type "varchar(255)" :col-name "crack-spot" :options [:not-null]}]})
-         "BEGIN;\nALTER TABLE \"users\" ADD COLUMN \"lucky-no\" integer UNIQUE;\nALTER TABLE \"users\" ADD COLUMN \"crack-spot\" varchar(255) NOT NULL;\nEND;"))
+         ["BEGIN;" 
+          "ALTER TABLE \"users\" ADD COLUMN \"lucky-no\" integer UNIQUE;"
+          "ALTER TABLE \"users\" ADD COLUMN \"crack-spot\" varchar(255) NOT NULL;"
+          "COMMIT;"]))
   (is (= (eval-query
            {:command :drop-table
             :if-exists true
