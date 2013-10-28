@@ -4,7 +4,7 @@ A Clojure Library to describe and alter tables. Think of it as complimentary to 
 
 Get the current version from Clojars with:
 
-      [paneer "0.1.2"]
+      [paneer "0.2.0"]
 
 ## Usage
 
@@ -13,19 +13,18 @@ Paneer is a tool for creating, altering, and dropping tables in a SQL database. 
 A Few Simple Examples:
 
     (ns some.namespace
-      (:use paneer.core))
+      (:refer paneer.core :all))
 
-    (create 
-      (table :users
-             (serial :id :primary-key)
-             (varchar :name 255 :not-null)
-             (varchar :email 255 :not-null)))
+    (create-table :users
+       (serial :id :primary-key)
+       (varchar :name 255 :not-null)
+       (varchar :email 255 :not-null)
+       (timestamps))
 
-    (alter
-      (table :users
+    (alter-table :users
         (rename (column :name) (to :user-name))))
 
-    (drop (table :users))
+    (drop-table :users))
 
 Or if you prefer a chained style
 
