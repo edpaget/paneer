@@ -149,3 +149,11 @@
                         (timestamp :create-tabled_at :default "now()")))
          '(0 0 0 0 0)))
   (drop-users))
+
+(deftest timestamps-test
+  (is (= (timestamps (table (create*) :users))
+         {:command :create-table 
+          :table "users" 
+          :if-exists false 
+          :columns [{:col-name "created_at" :type "timestamp" :options [:default "now()"]}
+                    {:col-name "updated_at" :type "timestamp" :options []}]})))

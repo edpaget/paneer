@@ -202,3 +202,9 @@
   (let [cname (str (->> table name butlast (apply str)) "_id")
         options [(str "REFERENCES \"" (name table) "\" (\"id\")") :on-delete :set-null]]
     (apply column command cname (or type :integer) options)))
+
+(defn timestamps
+  "Create a updated_at and created_at column"
+  [command]
+  (-> (timestamp command :created_at :default "now()")
+      (timestamp :updated_at)))
