@@ -9,11 +9,9 @@
   :profiles {:dev {:dependencies [[org.clojure/clojure "1.5.1"]
                                   [korma "0.3.0-RC6"]
                                   [postgresql/postgresql "8.4-702.jdbc4"]
-                                  [com.h2database/h2 "1.3.164"]
-                                  [org.clojure/algo.generic "0.1.1"]]
+                                  [com.h2database/h2 "1.3.164"]]
                    :plugins [[codox "0.6.6"]
                              [lein-localrepo "0.5.2"]]}
              :1.5 {:dependencies [[org.clojure/clojure "1.5.1"]
                                   [com.h2database/h2 "1.3.164"] 
-                                  [org.clojure/algo.generic "0.1.1"]
                                   [korma "0.3.0-RC6"]]}})
