@@ -1,6 +1,5 @@
 (ns paneer.engine
-  (:require [clojure.string :as str]
-            [clojure.algo.generic.functor :refer :all]))
+  (:require [clojure.string :as str]))
 
 (defn- delimit
   [string]
