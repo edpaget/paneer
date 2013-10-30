@@ -236,9 +236,9 @@
 
 (defn refer-to
   "Creates a reference column"
-  [command table & [type]]
+  [command table & [type schema]]
   (let [cname (str (->> table name butlast (apply str)) "_id")
-        options [(str "REFERENCES \"" (name table) "\" (\"id\")") :on-delete :set-null]]
+        options [(str "REFERENCES \"" (when schema (str (name schema) "\".\"")) (name table) "\" (\"id\")") :on-delete :set-null]]
     (apply column command cname (or type :integer) options)))
 
 (defn timestamps

@@ -125,7 +125,11 @@
   (is (= (first (:columns (refer-to (create*) :users)))
          {:col-name "user_id" 
           :type "integer" 
-          :options ["REFERENCES \"users\" (\"id\")" :on-delete :set-null]})))
+          :options ["REFERENCES \"users\" (\"id\")" :on-delete :set-null]}))
+  (is (= (first (:columns (refer-to (create*) :users :integer :test)))
+         {:col-name "user_id"
+          :type "integer"
+          :options ["REFERENCES \"test\".\"users\" (\"id\")" :on-delete :set-null]})))
 
 (deftest alter-test
   (create-users)
