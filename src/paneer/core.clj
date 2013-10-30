@@ -1,10 +1,10 @@
 (ns paneer.core
   (:require [clojure.java.jdbc :as j]
             [paneer.db :refer :all])
-  (:refer-clojure :exclude [bigint boolean char double float time drop alter]))
+  (:refer-clojure :exclude [bigint boolean char double float]))
 
 (defn- command
-  [command {:keys [if-exists]}]
+  [command & [if-exists]]
   {:command command
    :if-exists (or if-exists false)
    :table nil
@@ -12,18 +12,39 @@
 
 (defn create*
   "Starts a CREATE TABLE command"
-  [& opts]
-  (command :create-table opts)) 
+  [& [if-exists]]
+  (command :create-table (= :if-exists if-exists))) 
 
 (defn alter*
   "Starts an ALTER TABLE command"
-  [& opts]
-  (command :alter-table opts))
+  [& [if-exists]]
+  (command :alter-table (= :if-exists if-exists)))
 
 (defn drop*
   "Starts a DROP TABLE command"
-  [& opts]
-  (command :drop-table opts))
+  [& [if-exists]]
+  (command :drop-table (= :if-exists if-exists)))
+
+(defn transaction
+  "Groups multiple commands togeter into a single transaction"
+  [& commands]
+  (assoc (command :transaction) :commands commands))
+
+(defn schema
+  "Adds a schema qualification to existing command"
+  [command schema-name]
+  (assoc command :schema (name schema-name)))
+
+(defn create-schema*
+  "Starts a new create-schema command"
+  [& [if-exists]]
+  (command :create-schema (= :if-exists if-exists)))
+
+(defn drop-schema
+  "Starts a drop-schema command"
+  [& [if-exists cascade]]
+  (-> (command :drop-schema (= :if-exists if-exists))
+      (assoc :cascade (= :cascade cascade))))
 
 (defn table
   "Modifyes a command map to include table name"
@@ -79,13 +100,27 @@
   "Transforms command into the if exists version"
   [command]
   (let [[_ [command] & body] (macroexpand-1 command)
-        command (list command :if-exists true)]
+        command (list command :if-exists)]
     `(-> ~command
          ~@body)))
 
 (defmacro if-not-exists 
   [command]
   `(if-exists ~command))
+
+(defmacro in-schema
+  [schema-name & commands]
+  (let [commands (map (comp drop-last macroexpand-1) commands)]
+    (if (> (count commands) 1)
+      `(->> (map #(schema % ~schema-name) (list ~@commands)) 
+            (apply transaction)
+            execute)
+      `(-> ~@commands
+           execute))))
+
+(defmacro create-schema
+  [schema-name & commands]
+  `(in-schema ~schema-name (create-schema* ~schema-name) ~@commands))
 
 (defmacro create-table
   "Allows you to wrap a table definition together as in
@@ -147,7 +182,10 @@
         (rename-to* ~new-name)
         execute))
   ([tbl-name [action & args]]
-   `(execute (~action (table (alter*) ~tbl-name) ~@args))))
+   `(-> (alter*)
+        (table ~tbl-name)
+        (~action ~@args)
+        execute)))
 
 ;; Helper Functions for Creating specifically typed columns
 

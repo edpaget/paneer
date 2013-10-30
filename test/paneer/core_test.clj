@@ -2,8 +2,9 @@
   (:refer-clojure :exclude [bigint boolean double float]) 
   (:require [clojure.test :refer :all]
             [paneer.core :refer :all]
+            [paneer.db :refer :all]
             [clojure.string :as str]
-            [korma.db :refer :all]))
+            [korma.db :refer :all :exclude [transaction]]))
 
 (defn start-db
   []
@@ -157,3 +158,52 @@
           :if-exists false 
           :columns [{:col-name "created_at" :type "timestamp" :options [:default "now()"]}
                     {:col-name "updated_at" :type "timestamp" :options []}]})))
+
+(deftest schema-test
+ (is (= (schema (create*) :test)
+         {:command :create-table
+          :if-exists false
+          :table nil
+          :schema "test"
+          :columns []})))
+
+(deftest create-schema*-test
+   (is (= (:command (create-schema* :test))
+         :create-schema)))
+
+(deftest drop-schema-test
+  (is (= (:command (drop-schema :test))
+         :drop-schema)))
+
+(deftest in-schema-test
+  (-> (drop-schema :if-exists :cascade)
+      (schema :test)
+      execute)
+  (-> (create-schema*)
+      (schema :test)
+      execute)
+  (is (= (in-schema :test 
+                    (create-table :users 
+                                  (serial :id :primary-key)
+                                  (integer :name :not-null))
+                    (create-table :ascot
+                                  (serial :id :primary-key)
+                                  (timestamps))
+                    (alter-table :users
+                                 (add-columns (varchar :email 255 :not-null))))
+         '(0 0 0 0 0))))
+
+(deftest create-schema-test
+  (-> (drop-schema :if-exists :cascade)
+      (schema :test)
+      execute)
+  (is (= (create-schema :test 
+                    (create-table :users 
+                                  (serial :id :primary-key)
+                                  (integer :name :not-null))
+                    (create-table :ascot
+                                  (serial :id :primary-key)
+                                  (timestamps))
+                    (alter-table :users
+                                 (add-columns (varchar :email 255 :not-null))))
+         '(0 0 0 0 0 0))))

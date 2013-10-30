@@ -1,7 +1,6 @@
 (ns paneer.db
   (:require [clojure.string :as str]
             [korma.core :refer [exec-raw]]
-            [korma.db :refer [transaction]]
             [paneer.engine :refer [eval-query]]))
 
 (defn execute

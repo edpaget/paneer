@@ -11,8 +11,7 @@
     opt
     (-> (name opt)
         (str/replace "-" " ")
-        str/upper-case)))
-
+        str/upper-case))) 
 (defn- column-from-def
   [{:keys [type col-name options] :as col}]
   (if (string? col) 
@@ -75,12 +74,13 @@
       (delimit-fields :table :schema))) 
 
 (defmethod make-query :create-schema
-  [{:keys [schema]}]
-  (str "CREATE SCHEMA " schema ";"))
+  [{:keys [schema if-exists]}]
+  (str "CREATE SCHEMA " (when if-exists "IF NOT EXISTS ") schema ";"))
 
 (defmethod make-query :drop-schema
-  [{:keys [schema cascade]}]
-  (str "DROP SCHEMA " schema (when cascade " CASCADE") ";"))
+  [{:keys [schema cascade if-exists]}]
+  (str "DROP SCHEMA " (when if-exists "IF EXISTS ") 
+       schema (when cascade " CASCADE") ";"))
 
 (defmethod make-query :transaction
   [{:keys [commands]}]
