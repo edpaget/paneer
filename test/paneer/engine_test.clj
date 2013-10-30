@@ -100,4 +100,14 @@
   (is (= (eval-query
            {:command :create-schema
             :schema "pubic"})
-         "CREATE SCHEMA \"pubic\";")))
+         "CREATE SCHEMA \"pubic\";"))
+  (is (= (eval-query
+           {:command :drop-schema
+            :schema "pubic"
+            :cascade false})
+         "DROP SCHEMA \"pubic\";"))
+  (is (= (eval-query
+           {:command :drop-schema
+            :schema "pubic"
+            :cascade true})
+         "DROP SCHEMA \"pubic\" CASCADE;")))

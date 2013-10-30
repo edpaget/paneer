@@ -68,9 +68,19 @@
       the string name of the column."
   :command)
 
+(def eval-query
+  (-> make-query
+      convert-columns
+      qualify-table-name
+      (delimit-fields :table :schema))) 
+
 (defmethod make-query :create-schema
   [{:keys [schema]}]
   (str "CREATE SCHEMA " schema ";"))
+
+(defmethod make-query :drop-schema
+  [{:keys [schema cascade]}]
+  (str "DROP SCHEMA " schema (when cascade " CASCADE") ";"))
 
 (defmethod make-query :transaction
   [{:keys [commands]}]
@@ -114,9 +124,3 @@
   [{:keys [if-exists table]}]
   (str "DROP TABLE " (when if-exists "IF EXISTS ")
        table ";"))
-
-(def eval-query
-  (-> make-query
-      convert-columns
-      qualify-table-name
-      (delimit-fields :table :schema)))
