@@ -3,7 +3,9 @@
 
 (defn- delimit
   [string]
-  (when string (str "\"" (str/join (str/split (name string) #"\"")) "\"")))
+  (when string 
+    (let [strs (filter (comp not empty?) (str/split (name string)  #"(\"|\.)"))]
+      (str/join "." (map #(str "\"" % "\"") strs)))))
 
 (defn- convert-column-option
   [opt]
@@ -12,6 +14,7 @@
     (-> (name opt)
         (str/replace "-" " ")
         str/upper-case))) 
+
 (defn- column-from-def
   [{:keys [type col-name options] :as col}]
   (if (string? col) 
