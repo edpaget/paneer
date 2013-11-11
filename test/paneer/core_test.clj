@@ -195,7 +195,9 @@
                                   (timestamps))
                     (alter-table :users
                                  (add-columns (varchar :email 255 :not-null))))
-         '(0 0 0 0 0))))
+         '(0 0 0 0 0)))
+  (is (= (in-schema :test (drop-table :ascot))
+         '(0))))
 
 (deftest create-schema-test
   (-> (drop-schema :if-exists :cascade)

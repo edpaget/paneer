@@ -116,6 +116,7 @@
             (apply transaction)
             execute)
       `(-> ~@commands
+           (schema ~schema-name)
            execute))))
 
 (defmacro create-schema
