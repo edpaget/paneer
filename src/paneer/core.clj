@@ -218,7 +218,7 @@
 (defn text
   "Creates a text column"
   [command col-name & options]
-  (apply column command col-name :serial options))
+  (apply column command col-name :text options))
 
 (defn bigint
   "Creates a bigint column"
