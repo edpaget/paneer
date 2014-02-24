@@ -7,10 +7,10 @@
   "Executes the command against the default Korma connection. Accepted options are
     :db - specifies a different Korma database connection to use
     :sql - return only the sql that would have been executed"
-  [command & opts]
+  [command & {:keys [sql db]}]
   (let [command (eval-query command)] 
     (cond 
-      (:sql opts) command
-      (:db opts) (exec-raw (:db opts) command)
+      sql command
+      db (exec-raw db command)
       (vector? command) (flatten (map exec-raw command))
       true (exec-raw command))))
